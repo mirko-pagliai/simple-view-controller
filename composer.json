@@ -12,7 +12,8 @@
   "require": {
     "php": "^8.3",
     "josegonzalez/dotenv": "^4.0",
-    "symfony/http-foundation": "^7.3|^8.0"
+    "symfony/http-foundation": "^7.3|^8.0",
+    "symfony/routing": "^7.3|^8.0"
   },
   "require-dev": {
     "cakephp/cakephp-codesniffer": "^5.3",

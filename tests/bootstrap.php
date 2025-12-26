@@ -11,14 +11,9 @@ if (!defined('ROOT')) {
     define('ROOT', dirname(__DIR__));
 }
 
-if (!defined('TEST_APP')) {
-    define('TEST_APP', ROOT . DS . 'tests' . DS . 'test_app');
-}
-
-// Define templates directory
-if (!defined('TEMPLATES')) {
-    define('TEMPLATES', TEST_APP . DS . 'templates');
-}
+const DEBUG = true;
+const TEST_APP = ROOT . DS . 'tests' . DS . 'test_app';
+const TEMPLATES = TEST_APP . DS . 'templates';
 
 // Define temporary directory
 define('TMP', sys_get_temp_dir() . DS . 'simple-view-control');
