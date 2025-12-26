@@ -62,7 +62,7 @@ abstract class ControllerTestCase extends TestCase
      *
      * The resulting `Response` is stored in `$this->response` for assertions.
      *
-     * @param string $route The route name as defined in routes.php (e.g., 'home', 'user_profile')
+     * @param string $routeName The route name as defined in routes.php (e.g., `home`, `user_profile`)
      * @param string $method The HTTP method to simulate (GET, POST, PUT, DELETE, etc.). Defaults to 'GET'.
      * @param array<string, mixed> $parameters Request parameters (query params for GET, body params for POST, etc.)
      * @param array<string, mixed> $routeParameters Route placeholder values (e.g., `['id' => 123]` for `/users/{id}`)
@@ -72,7 +72,7 @@ abstract class ControllerTestCase extends TestCase
      * @throws \RuntimeException If the route is not found, controller/action are invalid, or the class doesn't exist
      */
     protected function executeAction(
-        string $route,
+        string $routeName,
         string $method = 'GET',
         array $parameters = [],
         array $routeParameters = [],
@@ -81,11 +81,11 @@ abstract class ControllerTestCase extends TestCase
     ): void {
         $routeCollection = $this->getRouteCollection();
 
-        $route = $routeCollection->get($route);
+        $route = $routeCollection->get($routeName);
 
         if ($route === null) {
-            $availableRoutes = implode(', ', array_keys($routeCollection->all()));
-            throw new RuntimeException("Route `{$route}` not found. Available routes: {$availableRoutes}.");
+            $availableRoutes = implode(', ', array_map(fn(string $routeName): string => "`$routeName`", array_keys($routeCollection->all())));
+            throw new RuntimeException("Route `{$routeName}` not found. Available routes: {$availableRoutes}.");
         }
 
         /**
@@ -101,7 +101,7 @@ abstract class ControllerTestCase extends TestCase
             // Format 1: `_controller` is `['ControllerClass', 'methodName']`
             if (count($controller) !== 2) {
                 throw new RuntimeException(
-                    "Route `{$route}` has invalid `_controller` format. Expected [class, method]."
+                    "Route `{$routeName}` has invalid `_controller` format. Expected [class, method]."
                 );
             }
             [$controllerClass, $action] = $controller;
@@ -112,7 +112,7 @@ abstract class ControllerTestCase extends TestCase
 
             if ($controllerClass === null || $action === null) {
                 throw new RuntimeException(
-                    "Route `{$route}` is missing required defaults: `_controller` and/or `_action`."
+                    "Route `{$routeName}` is missing required defaults: `_controller` and/or `_action`."
                 );
             }
         }
