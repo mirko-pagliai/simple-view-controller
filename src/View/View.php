@@ -21,7 +21,9 @@ class View
 
     protected ?Request $request = null;
 
-    /** @var array<string, mixed> */
+    /**
+     * @var array<string, mixed>
+     */
     protected array $data = [];
 
     /**
@@ -30,11 +32,12 @@ class View
      * @param string|null $templatePath The path to the templates' directory. Defaults to `TEMPLATES` constant if not provided.
      * @param string|null $layout The default layout file or null for no layout. Defaults to 'layouts/default.php'.
      * @return void
+     *
      * @throws \InvalidArgumentException If the provided template path does not exist.
      */
     public function __construct(
         ?string $templatePath = null,
-        ?string $layout = 'layouts/default.php'
+        ?string $layout = 'layouts/default.php',
     ) {
         $templatePath = rtrim($templatePath ?: TEMPLATES, DS);
         if (!is_dir($templatePath)) {
@@ -112,6 +115,7 @@ class View
 
         ob_start();
         include $filePath;
+
         return ob_get_clean();
     }
 
@@ -121,6 +125,7 @@ class View
      * @param string $file The name of the template file to render.
      * @param array<string, mixed> $data An associative array of data to be used within the template.
      * @return string The rendered output of the template.
+     *
      * @throws \InvalidArgumentException If the specified template file does not exist.
      * @throws \RuntimeException If the template file returns invalid output, that is not a string.
      */
@@ -173,6 +178,7 @@ class View
      * Automatically detects the template path based on the controller and action in the current request.
      *
      * @return string The resolved template path in the format `ControllerName/action_name.php`.
+     *
      * @throws \RuntimeException If the request is not set, or if the controller cannot be determined from the request attributes.
      */
     protected function autoDetectTemplate(): string
@@ -181,7 +187,7 @@ class View
             throw new RuntimeException('`$this->request` not set. Call `setRequest()` before `render()`.');
         }
 
-        /** @var array{class-string, non-empty-string}|non-empty-string $controller */
+        /** @var non-empty-string|array{class-string, non-empty-string} $controller */
         $controller = $this->request->attributes->get('_controller');
         if (!$controller) {
             throw new RuntimeException('`_controller` attribute not found in `$this->request`.');
