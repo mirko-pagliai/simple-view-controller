@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testsuite:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.4']
+        dependencies: ['highest']
+        include:
+          - php-version: '8.4'
+            dependencies: 'lowest'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        coverage: pcov
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Composer install
+      uses: ramsey/composer-install@v3
+      with:
+        dependency-versions: ${{ matrix.dependencies }}
+
+    - name: Run PHPUnit
+      run: |
+        if [[ ${{ matrix.dependencies }} == 'highest' ]]; then
+          export XDEBUG_MODE=coverage;
+          vendor/bin/phpunit --display-skipped --display-deprecations --display-warnings --coverage-clover=coverage.xml
+        else
+          vendor/bin/phpunit --display-deprecations --display-warnings
+        fi
+
+    - name: Submit code coverage
+      if: success() && matrix.dependencies == 'highest'
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  testsuite-windows:
+    runs-on: windows-2022
+    name: Windows - PHP 8.4
+
+    env:
+      PHP_VERSION: '8.4'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+
+      - name: Composer install
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit
+        run: |
+          vendor/bin/phpunit --display-incomplete
+
+  coding-standard:
+    name: Coding Standard & Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run phpstan
+        run: vendor/bin/phpstan analyse --error-format=github
