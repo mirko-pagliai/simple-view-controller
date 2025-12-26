@@ -13,6 +13,22 @@ use SimpleVC\View\View;
 class ControllerTest extends TestCase
 {
     /**
+     * @link \SimpleVC\Controller\Controller::getView()
+     */
+    #[Test]
+    public function testGetView(): void
+    {
+        $view = $this->createStub(View::class);
+
+        $controller = new class extends Controller {
+            public View $view;
+        };
+        $controller->view = $view;
+
+        $this->assertSame($view, $controller->getView());
+    }
+
+    /**
      * @link \SimpleVC\Controller\Controller::set()
      */
     #[Test]

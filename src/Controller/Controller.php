@@ -29,6 +29,16 @@ abstract class Controller
     }
 
     /**
+     * Retrieves the view instance.
+     *
+     * @return \SimpleVC\View\View The view instance.
+     */
+    public function getView(): View
+    {
+        return $this->view;
+    }
+
+    /**
      * Sets the given data to the view.
      *
      * @param array<string, mixed> $data An associative array containing data to be set.
