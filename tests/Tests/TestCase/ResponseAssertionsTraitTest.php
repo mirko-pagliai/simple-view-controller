@@ -124,8 +124,25 @@ class ResponseAssertionsTraitTest extends TestCase
         $testCase
             ->setResponse(new Response('', 200))
             ->assertResponseIsRedirect();
+    }
 
-        $this->markTestIncomplete('Not implemented yet.');
+    /**
+     * @link \SimpleVC\TestCase\ResponseAssertionsTrait::assertResponseIsRedirect()
+     */
+    #[Test]
+    public function testAssertResponseIsRedirectWithExpectedUrl(): void
+    {
+        $testCase = new TestCaseWithResponseAssertionsTrait('myTest');
+
+        $testCase
+            ->setResponse(new Response('', 302, ['Location' => '/my/url']))
+            ->assertResponseIsRedirect('/my/url');
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('Failed asserting that response header "Location" has value "/my/url".');
+        $testCase
+            ->setResponse(new Response('', 302, ['Location' => '/this/is/not/my/url']))
+            ->assertResponseIsRedirect('/my/url');
     }
 
     /**
@@ -141,7 +158,7 @@ class ResponseAssertionsTraitTest extends TestCase
             ->assertResponseContains('my content');
 
         $this->expectException(AssertionFailedError::class);
-        $this->expectExceptionMessage('Failed asserting that \'my content\' [ASCII](length: 10) contains "not this" [ASCII](length: 8).');
+        $this->expectExceptionMessage('Failed asserting that response contains "not this".');
         $testCase->assertResponseContains('not this');
     }
 
@@ -158,7 +175,7 @@ class ResponseAssertionsTraitTest extends TestCase
             ->assertResponseNotContains('not this');
 
         $this->expectException(AssertionFailedError::class);
-        $this->expectExceptionMessage('Failed asserting that \'my content\' [ASCII](length: 10) does not contain "my content" [ASCII](length: 10).');
+        $this->expectExceptionMessage('Failed asserting that response does not contain "my content".');
         $testCase->assertResponseNotContains('my content');
     }
 
@@ -175,7 +192,7 @@ class ResponseAssertionsTraitTest extends TestCase
             ->assertResponseMatchesRegex('/my.*/');
 
         $this->expectException(AssertionFailedError::class);
-        $this->expectExceptionMessage('Failed asserting that \'my content\' matches PCRE pattern "/\d+/".');
+        $this->expectExceptionMessage('Failed asserting that response matches pattern "/\d+/".');
         $testCase->assertResponseMatchesRegex('/\d+/');
     }
 

@@ -44,13 +44,16 @@ trait ResponseAssertionsTrait
      * Optionally, a custom assertion message can be provided for better clarity in case of failure.
      *
      * @param int $expected The expected status code
-     * @param string $message Optional custom message for the assertion
+     * @param string|null $message Optional custom message for the assertion
      * @return void
      */
-    protected function assertResponseStatusCode(int $expected, string $message = ''): void
+    protected function assertResponseStatusCode(int $expected, ?string $message = null): void
     {
         $this->assertResponseExists();
-        $this->assertSame($expected, $this->response->getStatusCode(), $message ?: "Failed asserting that response status code is {$expected}.");
+        $this->assertSame(
+            $expected, $this->response->getStatusCode(),
+            $message ?? "Failed asserting that response status code is {$expected}.",
+        );
     }
 
     /**
@@ -85,27 +88,22 @@ trait ResponseAssertionsTrait
     }
 
     /**
-     * Asserts that the response is a redirect (3xx status code).
+     * Asserts that the response is a redirect and optionally verifies the redirect location.
      *
+     * This method checks if the response indicates a redirection and validates the redirection URL when a specific URL
+     *  is expected.
+     *
+     * @param string|null $expectedUrl The expected URL to which the response should redirect, or null to skip this check
      * @return void
      */
-    protected function assertResponseIsRedirect(): void
+    protected function assertResponseIsRedirect(?string $expectedUrl = null): void
     {
         $this->assertResponseExists();
         $this->assertTrue($this->response->isRedirect(), 'Failed asserting that response is a redirect.');
-    }
 
-    /**
-     * Asserts that the response is a redirect to a specific URL.
-     *
-     * @param string $expectedUrl The expected redirect URL
-     * @return void
-     */
-    protected function assertRedirectsTo(string $expectedUrl): void
-    {
-        $this->assertResponseIsRedirect();
-
-        $this->assertSame($expectedUrl, $this->response->headers->get('Location'));
+        if ($expectedUrl !== null) {
+            $this->assertResponseHeader('Location', $expectedUrl);
+        }
     }
 
     /**
@@ -119,7 +117,11 @@ trait ResponseAssertionsTrait
     protected function assertResponseContains(string $needle): void
     {
         $this->assertResponseExists();
-        $this->assertStringContainsString($needle, $this->response->getContent());
+        $this->assertStringContainsString(
+            $needle,
+            $this->response->getContent(),
+            "Failed asserting that response contains \"{$needle}\".",
+        );
     }
 
     /**
@@ -133,7 +135,11 @@ trait ResponseAssertionsTrait
     protected function assertResponseNotContains(string $needle): void
     {
         $this->assertResponseExists();
-        $this->assertStringNotContainsString($needle, $this->response->getContent());
+        $this->assertStringNotContainsString(
+            $needle,
+            $this->response->getContent(),
+            "Failed asserting that response does not contain \"{$needle}\".",
+        );
     }
 
     /**
@@ -148,7 +154,11 @@ trait ResponseAssertionsTrait
     protected function assertResponseMatchesRegex(string $pattern): void
     {
         $this->assertResponseExists();
-        $this->assertMatchesRegularExpression($pattern, $this->response->getContent());
+        $this->assertMatchesRegularExpression(
+            $pattern,
+            $this->response->getContent(),
+            "Failed asserting that response matches pattern \"{$pattern}\".",
+        );
     }
 
     /**
