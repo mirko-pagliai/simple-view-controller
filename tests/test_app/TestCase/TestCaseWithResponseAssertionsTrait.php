@@ -21,6 +21,8 @@ class TestCaseWithResponseAssertionsTrait extends TestCase
         assertResponseIsNotFound as public;
         assertResponseIsServerError as public;
         assertResponseIsRedirect as public;
+        assertResponseIsEmpty as public;
+        assertResponseIsNotEmpty as public;
         assertResponseContains as public;
         assertResponseNotContains as public;
         assertResponseMatchesRegex as public;

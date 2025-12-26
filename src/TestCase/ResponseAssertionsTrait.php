@@ -107,6 +107,32 @@ trait ResponseAssertionsTrait
     }
 
     /**
+     * Asserts that the response content is empty.
+     *
+     * Useful for verifying that the response contains no content, ensuring it meets expected behavior for empty responses.
+     *
+     * @return void
+     */
+    protected function assertResponseIsEmpty(): void
+    {
+        $this->assertResponseExists();
+        $this->assertEmpty($this->response->getContent(), 'Failed asserting that response is empty.');
+    }
+
+    /**
+     * Asserts that the response content is not empty.
+     *
+     * Ensures that a response exists and contains data, validating that the output is not blank.
+     *
+     * @return void
+     */
+    protected function assertResponseIsNotEmpty(): void
+    {
+        $this->assertResponseExists();
+        $this->assertNotEmpty($this->response->getContent(), 'Failed asserting that response is not empty.');
+    }
+
+    /**
      * Asserts that the response content contains a specific string.
      *
      * Useful for checking if specific HTML elements, text, or data are present in the rendered output.

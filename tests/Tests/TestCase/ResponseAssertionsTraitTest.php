@@ -146,6 +146,44 @@ class ResponseAssertionsTraitTest extends TestCase
     }
 
     /**
+     * @link \SimpleVC\TestCase\ResponseAssertionsTrait::assertResponseIsEmpty()
+     */
+    #[Test]
+    public function testAssertResponseIsEmpty(): void
+    {
+        $testCase = new TestCaseWithResponseAssertionsTrait('myTest');
+
+        $testCase
+            ->setResponse(new Response())
+            ->assertResponseIsEmpty();
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('Failed asserting that response is empty.');
+        $testCase
+            ->setResponse(new Response('this response is not empty'))
+            ->assertResponseIsEmpty();
+    }
+
+    /**
+     * @link \SimpleVC\TestCase\ResponseAssertionsTrait::assertResponseIsNotEmpty()
+     */
+    #[Test]
+    public function testAssertResponseIsNotEmpty(): void
+    {
+        $testCase = new TestCaseWithResponseAssertionsTrait('myTest');
+
+        $testCase
+            ->setResponse(new Response('this response is not empty'))
+            ->assertResponseIsNotEmpty();
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('Failed asserting that response is not empty.');
+        $testCase
+            ->setResponse(new Response())
+            ->assertResponseIsNotEmpty();
+    }
+
+    /**
      * @link \SimpleVC\TestCase\ResponseAssertionsTrait::assertResponseContains()
      */
     #[Test]
