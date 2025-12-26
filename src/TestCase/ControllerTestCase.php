@@ -20,20 +20,31 @@ abstract class ControllerTestCase extends TestCase
 {
     use ResponseAssertionsTrait;
 
-    protected static RouteCollection $routes;
+    protected ?RouteCollection $routes = null;
 
     /**
-     * @inheritDoc
+     * Retrieves the collection of routes for the application.
+     *
+     * This method loads routes from the configuration file if they haven't been loaded yet.
+     * The configuration file must return an instance of `RouteCollection`. If the returned value
+     * is not of the expected type, an exception will be thrown.
+     *
+     * @return \Symfony\Component\Routing\RouteCollection The collection of routes defined in the configuration file.
+     * @throws \RuntimeException If the configuration file does not return an instance of `RouteCollection`.
      */
-    public static function setUpBeforeClass(): void
+    protected function getRouteCollection(): RouteCollection
     {
-        parent::setUpBeforeClass();
+        if (!$this->routes) {
+            $this->routes = require CONFIG . '/routes.php';
+        }
 
-        /**
-         * Loads the application's route collection from the configuration file and stores it in a static property to
-         *  avoid reloading routes for every test method.
-         */
-        self::$routes = require CONFIG . '/routes.php';
+        if (!$this->routes instanceof RouteCollection) {
+            throw new RuntimeException(
+                'Route `' . CONFIG . '/routes.php'. '` file must return a `RouteCollection` instance.',
+            );
+        }
+
+        return $this->routes;
     }
 
     /**
@@ -68,10 +79,12 @@ abstract class ControllerTestCase extends TestCase
         array $server = [],
         ?string $content = null,
     ): void {
-        $routeInfo = self::$routes->get($route);
+        $routeCollection = $this->getRouteCollection();
 
-        if ($routeInfo === null) {
-            $availableRoutes = implode(', ', array_keys(self::$routes->all()));
+        $route = $routeCollection->get($route);
+
+        if ($route === null) {
+            $availableRoutes = implode(', ', array_keys($routeCollection->all()));
             throw new RuntimeException("Route `{$route}` not found. Available routes: {$availableRoutes}.");
         }
 
@@ -82,7 +95,7 @@ abstract class ControllerTestCase extends TestCase
          * 1. `_controller` as an array: `['ControllerClass', 'methodName']`
          * 2. Separate `_controller` and `_action`
          */
-        $controller = $routeInfo->getDefault('_controller');
+        $controller = $route->getDefault('_controller');
 
         if (is_array($controller)) {
             // Format 1: `_controller` is `['ControllerClass', 'methodName']`
@@ -95,7 +108,7 @@ abstract class ControllerTestCase extends TestCase
         } else {
             // Format 2: separate `_controller` and `_action`
             $controllerClass = $controller;
-            $action = $routeInfo->getDefault('_action');
+            $action = $route->getDefault('_action');
 
             if ($controllerClass === null || $action === null) {
                 throw new RuntimeException(
@@ -122,7 +135,7 @@ abstract class ControllerTestCase extends TestCase
         $controller = new $controllerClass();
 
         // Replace route placeholders with actual values (URL-encoded)
-        $path = $routeInfo->getPath();
+        $path = $route->getPath();
         foreach ($routeParameters as $key => $value) {
             $path = str_replace("{{$key}}", urlencode((string)$value), $path);
         }
