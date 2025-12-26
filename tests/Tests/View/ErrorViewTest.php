@@ -1,0 +1,79 @@
+<?php
+declare(strict_types=1);
+
+namespace SimpleVC\Test\Tests\View;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use SimpleVC\View\ErrorView;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Throwable;
+
+#[CoversClass(ErrorView::class)]
+class ErrorViewTest extends TestCase
+{
+    /**
+     * @link \SimpleVC\View\ErrorView::__construct()
+     */
+    #[Test]
+    public function testConstruct(): void
+    {
+        $errorView = new class extends ErrorView {
+            public ?string $layout;
+        };
+
+        $this->assertSame('layouts/error.php', $errorView->layout);
+    }
+
+    /**
+     * @link \SimpleVC\View\ErrorView::determineTemplate()
+     */
+    #[Test]
+    #[TestWith(['errors/400.php', 404])]
+    #[TestWith(['errors/400.php', 499])]
+    #[TestWith(['errors/500.php', 500])]
+    #[TestWith(['errors/500.php', 599])]
+    public function testDetermineTemplate(string $expectedTemplate, int $statusCode): void
+    {
+        $errorView = new class extends ErrorView {
+            public function determineTemplate(int $statusCode): string
+            {
+                return parent::determineTemplate($statusCode);
+            }
+        };
+
+        $result = $errorView->determineTemplate($statusCode);
+        $this->assertSame($expectedTemplate, $result);
+    }
+
+    /**
+     * @link \SimpleVC\View\ErrorView::renderError()
+     */
+    #[Test]
+    #[TestWith(['Error response: error 404', 404])]
+    #[TestWith(['Error response: fatal 500', 500])]
+    #[TestWith(['Error response: error 404 - Something were wrong...', 404, new ResourceNotFoundException('Something were wrong...')])]
+    #[TestWith(['Error response: fatal 500 - Runtime!', 500, new RuntimeException('Runtime!')])]
+    public function testRenderError(string $expected, int $statusCode, ?Throwable $exception = null): void
+    {
+        $errorView = new ErrorView();
+        $result = $errorView->renderError($statusCode, $exception);
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * @link \SimpleVC\View\ErrorView::renderError()
+     */
+    #[Test]
+    public function testRenderErrorWithNoLayout(): void
+    {
+        $errorView = new ErrorView();
+        $errorView->setLayout(null);
+
+        $result = $errorView->renderError(404);
+        $this->assertSame('error 404', $result);
+    }
+}
