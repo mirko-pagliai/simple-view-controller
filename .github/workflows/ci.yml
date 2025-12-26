@@ -14,9 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.4', 8.5]
+        php-version: ['8.3', '8.4', '8.5']
         dependencies: ['highest']
         include:
+          - php-version: '8.3'
+            dependencies: 'lowest'
           - php-version: '8.4'
             dependencies: 'lowest'
           - php-version: '8.5'
@@ -58,7 +60,7 @@ jobs:
         fi
 
     - name: Submit code coverage
-      if: success() && matrix.dependencies == 'highest'
+      if: success() && matrix.php-version == '8.4' && matrix.dependencies == 'highest'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
