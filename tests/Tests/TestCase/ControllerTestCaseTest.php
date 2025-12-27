@@ -47,14 +47,14 @@ class ControllerTestCaseTest extends TestCase
     {
         $testCase = new class('myTest') extends ControllerTestCase {
             public function executeAction(
-                string $route,
+                string $routeName,
                 string $method = 'GET',
                 array $parameters = [],
                 array $routeParameters = [],
                 array $server = [],
                 ?string $content = null,
             ): void {
-                parent::executeAction($route, $method, $parameters, $routeParameters, $server, $content);
+                parent::executeAction($routeName, $method, $parameters, $routeParameters, $server, $content);
             }
         };
 
