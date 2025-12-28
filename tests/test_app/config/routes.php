@@ -7,9 +7,4 @@ use TestApp\TestCase\PagesController;
 
 $routes = new RouteCollection();
 
-// Home route
-$routes->add(name: 'home', route: new Route('/', [
-    '_controller' => [PagesController::class, 'index'],
-]));
-
 return $routes;
