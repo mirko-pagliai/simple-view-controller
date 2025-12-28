@@ -16,6 +16,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RouteCollection;
 use Throwable;
 
 /**
@@ -29,11 +30,10 @@ class Application
 
     private ErrorRenderer $errorRenderer;
 
-    protected function __construct(string $routesPath)
+    protected function __construct(RouteCollection $routeCollection)
     {
-        $routes = require $routesPath;
         $context = new RequestContext();
-        $this->matcher = new UrlMatcher($routes, $context);
+        $this->matcher = new UrlMatcher($routeCollection, $context);
 
         $this->errorRenderer = new ErrorRenderer();
     }
@@ -41,13 +41,13 @@ class Application
     /**
      * Initializes the singleton instance of the class, loading routes from the specified path.
      *
-     * @param string $routesPath The file path to the routes configuration file. Defaults to `CONFIG . '/routes.php'`.
+     * @param \Symfony\Component\Routing\RouteCollection|null $routeCollection
      * @return self The initialized instance of the class.
      */
-    public static function init(string $routesPath = CONFIG . '/routes.php'): self
+    public static function init(?RouteCollection $routeCollection = null): self
     {
         if (self::$instance === null) {
-            self::$instance = new self($routesPath);
+            self::$instance = new self($routeCollection ?? require CONFIG . '/routes.php');
         }
 
         return self::$instance;
@@ -111,7 +111,7 @@ class Application
                 throw new RuntimeException('Invalid controller format');
             }
             if (!$controller[0] instanceof Controller) {
-                throw new RuntimeException('Controller must extend SimpleVC\Controller\Controller');
+                throw new RuntimeException('Controller must extend `' . Controller::class . '`.');
             }
             if (!is_string($controller[1])) {
                 throw new RuntimeException('Controller method must be a string');
