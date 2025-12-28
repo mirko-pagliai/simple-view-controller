@@ -41,6 +41,17 @@ class ErrorRenderer
         );
     }
 
+    /**
+     * Writes error details to the console.
+     *
+     * This method outputs the error message and stack trace of the given exception to `STDERR`, provided that debugging
+     *  is enabled and an exception is supplied. It is intended for debugging purposes and avoids output buffering
+     *  issues by writing directly to `STDERR`.
+     *
+     * @param int $statusCode The HTTP status code that triggered the error
+     * @param \Throwable|null $exception The exception to log, or null if no exception is available
+     * @return void
+     */
     protected function writeToConsole(int $statusCode, ?Throwable $exception): void
     {
         // @phpstan-ignore booleanNot.alwaysFalse
@@ -62,6 +73,17 @@ class ErrorRenderer
         }
     }
 
+    /**
+     * Logs error details to the system logger.
+     *
+     * This method records the error information by:
+     * 1. Parsing and logging a formatted error message based on the status code and exception details
+     * 2. Logging the stack trace of the exception (if provided)
+     *
+     * @param int $statusCode The HTTP status code associated with the error (e.g., 500, 404)
+     * @param \Throwable|null $exception The exception that triggered the error or `null` if none
+     * @return void
+     */
     protected function writeToLog(int $statusCode, ?Throwable $exception): void
     {
         if ($exception === null) {

@@ -25,7 +25,7 @@ class ResponseAssertionsTraitTest extends TestCase
         $this->_response = new Response(
             'This is the content of the Response',
             200,
-            ['Content-Type'=> 'text/html'],
+            ['Content-Type' => 'text/html'],
         );
     }
 

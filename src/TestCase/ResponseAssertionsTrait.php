@@ -50,6 +50,7 @@ trait ResponseAssertionsTrait
     public function assertResponseStatusCode(int $expected, ?string $message = null): void
     {
         $this->assertResponseExists();
+
         $this->assertSame(
             $expected,
             $this->_response->getStatusCode(),
@@ -65,6 +66,7 @@ trait ResponseAssertionsTrait
     public function assertResponseIsSuccessful(): void
     {
         $this->assertResponseExists();
+
         $this->assertTrue($this->_response->isSuccessful(), 'Failed asserting that response is successful.');
     }
 
@@ -100,6 +102,7 @@ trait ResponseAssertionsTrait
     public function assertResponseIsRedirect(?string $expectedUrl = null): void
     {
         $this->assertResponseExists();
+
         $this->assertTrue($this->_response->isRedirect(), 'Failed asserting that response is a redirect.');
 
         if ($expectedUrl !== null) {
@@ -117,6 +120,7 @@ trait ResponseAssertionsTrait
     public function assertResponseIsEmpty(): void
     {
         $this->assertResponseExists();
+
         $this->assertEmpty($this->_response->getContent(), 'Failed asserting that response is empty.');
     }
 
@@ -132,6 +136,7 @@ trait ResponseAssertionsTrait
     public function assertResponseIsNotEmpty(?string $message = null): void
     {
         $this->assertResponseExists();
+
         $this->assertNotEmpty(
             $this->_response->getContent(),
             $message ?? 'Failed asserting that response is not empty.',
@@ -149,7 +154,11 @@ trait ResponseAssertionsTrait
     public function assertResponseContains(string $needle): void
     {
         $this->assertResponseExists();
-        $this->assertResponseIsNotEmpty("Failed asserting that response contains \"{$needle}\", because the response is empty.");
+
+        $this->assertResponseIsNotEmpty(
+            "Failed asserting that response contains \"{$needle}\", because the response is empty.",
+        );
+
         $this->assertStringContainsString(
             $needle,
             $this->_response->getContent() ?: '',
@@ -168,7 +177,11 @@ trait ResponseAssertionsTrait
     public function assertResponseNotContains(string $needle): void
     {
         $this->assertResponseExists();
-        $this->assertResponseIsNotEmpty("Failed asserting that response does not contain \"{$needle}\", because the response is empty.");
+
+        $this->assertResponseIsNotEmpty(
+            "Failed asserting that response does not contain \"{$needle}\", because the response is empty.",
+        );
+
         $this->assertStringNotContainsString(
             $needle,
             $this->_response->getContent() ?: '',
@@ -188,6 +201,7 @@ trait ResponseAssertionsTrait
     public function assertResponseMatchesRegex(string $pattern): void
     {
         $this->assertResponseExists();
+
         $this->assertMatchesRegularExpression(
             $pattern,
             $this->_response->getContent() ?: '',
@@ -205,6 +219,11 @@ trait ResponseAssertionsTrait
     public function assertResponseHeader(string $header, string $expected): void
     {
         $this->assertResponseExists();
-        $this->assertSame($expected, $this->_response->headers->get($header), 'Failed asserting that response header "'.$header.'" has value "'.$expected.'".');
+
+        $this->assertSame(
+            $expected,
+            $this->_response->headers->get($header),
+            'Failed asserting that response header "' . $header . '" has value "' . $expected . '".',
+        );
     }
 }
