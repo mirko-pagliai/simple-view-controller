@@ -4,73 +4,61 @@ declare(strict_types=1);
 namespace SimpleVC\Error;
 
 use Psr\Log\AbstractLogger;
+use RuntimeException;
 use Stringable;
 use Throwable;
 use function SimpleVC\env;
 
 /**
- * Logger implementation that writes to `STDERR` (console output).
+ * PSR-3 compliant console logger.
  *
- * This logger writes log messages to `STDERR` when the debug mode is enabled. It's primarily used during development
- *  to display errors in the terminal where the PHP development server was started.
- *
- * Only logs when the `DEBUG` environment variable is set to `true`.
+ * Note: log levels are ignored.
+ * Output is written to stderr only when the debug is enabled.
  */
 class ConsoleLogger extends AbstractLogger
 {
     /**
-     * Interpolates context values into the message placeholders.
-     *
-     * @param \Stringable|string $message
-     * @param array<string, mixed> $context
-     * @return string
+     * @var resource
      */
-    private function interpolate(string|Stringable $message, array $context): string
-    {
-        $message = (string)$message;
-        $replace = [];
+    private $stream;
 
-        foreach ($context as $key => $val) {
-            // Check that the value can be cast to string
-            if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
-                $replace['{' . $key . '}'] = $val;
-            }
+    /**
+     * Constructor method for initializing the stream.
+     *
+     * @param resource|null $stream An optional stream resource. If not provided, a default stream to 'php://stderr' is used.
+     * @return void
+     * @throws \RuntimeException If the provided stream is not a valid resource.
+     */
+    public function __construct($stream = null)
+    {
+        $stream = $stream ?: fopen('php://stderr', 'w');
+        if (!is_resource($stream)) {
+            throw new RuntimeException('Invalid stream resource');
         }
 
-        return strtr($message, $replace);
+        $this->stream = $stream;
     }
 
     /**
-     * Logs with an arbitrary level.
+     * Logs a message with a given level and context.
      *
-     * @param mixed $level
-     * @param \Stringable|string $message
-     * @param array<string, mixed> $context
+     * @param mixed $level The log level.
+     * @param \Stringable|string $message The message to log.
+     * @param array<string, mixed> $context Array with additional context information. Can include an `exception` key
+     *  with a `Throwable` value.
      * @return void
      */
     public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
-        if (!env('DEBUG', false)) {
+        if (env('DEBUG', false) !== true) {
             return;
         }
 
-        $stderr = fopen('php://stderr', 'w');
-        if ($stderr === false) {
-            return;
-        }
+        fwrite($this->stream, (string)$message . "\n");
 
-        // Interpolate context values into message placeholders
-        $interpolatedMessage = $this->interpolate($message, $context);
-
-        // Write the interpolated message
-        fwrite($stderr, $interpolatedMessage . "\n");
-
-        // If there's an exception in context, write its stack trace
         $exception = $context['exception'] ?? null;
         if ($exception instanceof Throwable) {
-            fwrite($stderr, $exception->getTraceAsString() . "\n\n");
+            fwrite($this->stream, (string)$exception . "\n");
         }
-
-        fclose($stderr);
     }
 }
