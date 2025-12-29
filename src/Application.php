@@ -110,12 +110,9 @@ class Application
                 throw new RuntimeException('Controller must extend `' . Controller::class . '`.');
             }
 
-            // Inject a request into the view
-            $controller
-                ->getView()
-                ->setRequest($request);
+            // Inject the request into the view, resolve controller arguments, then execute the controller method
+            $controller->getView()->setRequest($request);
 
-            // Resolve controller arguments and execute
             $arguments = $argumentResolver->getArguments($request, $callable);
 
             $response = $controller->{$method}(...$arguments);
