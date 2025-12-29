@@ -34,7 +34,7 @@ class ErrorRendererTest extends TestCase
     {
         $logger = $this->createMock(LoggerInterface::class);
 
-        $errorRenderer = new class($logger) extends ErrorRenderer {
+        $errorRenderer = new class ($logger) extends ErrorRenderer {
             public ?LoggerInterface $logger;
         };
         $this->assertSame($logger, $errorRenderer->logger);
