@@ -5,6 +5,7 @@ namespace SimpleVC;
 
 use RuntimeException;
 use SimpleVC\Controller\Controller;
+use SimpleVC\Error\ConsoleLogger;
 use SimpleVC\Error\ErrorRenderer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,13 +15,16 @@ use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Throwable;
 
 /**
  * Central application class that manages routing, session, and request handling.
+ *
+ * This class implements the Singleton pattern and serves as the main entry point for handling HTTP requests. It
+ *  coordinates routing, controller resolution, session management, and error handling.
  */
 class Application
 {
@@ -30,24 +34,35 @@ class Application
 
     private ErrorRenderer $errorRenderer;
 
-    protected function __construct(RouteCollection $routeCollection)
+    /**
+     * Protected constructor to allow extension for testing while enforcing singleton pattern.
+     *
+     * Initializes the routing matcher and error renderer with the provided route collection.
+     *
+     * @param \Symfony\Component\Routing\RouteCollection $routeCollection The routes configuration
+     * @param \SimpleVC\Error\ErrorRenderer|null $errorRenderer Optional error renderer
+     * @return void
+     */
+    protected function __construct(RouteCollection $routeCollection, ?ErrorRenderer $errorRenderer = null)
     {
         $context = new RequestContext();
         $this->matcher = new UrlMatcher($routeCollection, $context);
 
-        $this->errorRenderer = new ErrorRenderer();
+        $this->errorRenderer = $errorRenderer ?? new ErrorRenderer(new ConsoleLogger());
     }
 
     /**
-     * Initializes the singleton instance of the class, loading routes from the specified path.
+     * Initializes the singleton instance of the class, loading routes from the specified collection or default path.
      *
-     * @param \Symfony\Component\Routing\RouteCollection|null $routeCollection
-     * @return self The initialized instance of the class.
+     * @param \Symfony\Component\Routing\RouteCollection|null $routeCollection The route collection to use, or `null` to
+     *  load from `CONFIG/routes.php`
+     * @param \SimpleVC\Error\ErrorRenderer|null $errorRenderer Optional error renderer
+     * @return self The initialized instance of the class
      */
-    public static function init(?RouteCollection $routeCollection = null): self
+    public static function init(?RouteCollection $routeCollection = null, ?ErrorRenderer $errorRenderer = null): self
     {
         if (self::$instance === null) {
-            self::$instance = new self($routeCollection ?? require CONFIG . '/routes.php');
+            self::$instance = new self($routeCollection ?? require CONFIG . '/routes.php', $errorRenderer);
         }
 
         return self::$instance;
@@ -127,7 +142,6 @@ class Application
             }
 
             return $response;
-
         } catch (ResourceNotFoundException $e) {
             return $this->errorRenderer->render(404, $e);
         } catch (HttpExceptionInterface $e) {
