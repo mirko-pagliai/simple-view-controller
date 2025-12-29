@@ -8,9 +8,11 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use SimpleVC\Application;
+use SimpleVC\Controller\Controller;
 use SimpleVC\Error\ErrorRenderer;
 use SimpleVC\TestCase\ResponseAssertionsTrait;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
 #[CoversClass(Application::class)]
@@ -142,5 +144,32 @@ class ApplicationTest extends TestCase
 
         $this->_response = $app->run(Request::create('/boom'));
         $this->assertResponseContains('Error response: fatal 500 - Boom');
+    }
+
+    /**
+     * @link \SimpleVC\Application::run()
+     */
+    public function testReturns500WhenControllerDoesNotExtendBaseController(): void
+    {
+        putenv('DEBUG=true');
+
+        $badController = new class {
+            public function index(): string
+            {
+                return 'invalid';
+            }
+        };
+
+        $routes = new RouteCollection();
+        $routes->add('invalid', new Route('/invalid', [
+            '_controller' => [$badController, 'index'],
+        ]));
+
+        $errorRenderer = new ErrorRenderer(new NullLogger());
+        $app = new Application($routes, $errorRenderer);
+
+        $this->_response = $app->run(Request::create('/invalid'));
+        $this->assertResponseFailure();
+        $this->assertResponseContains('Error response: fatal 500 - Controller must extend `' . Controller::class . '`.');
     }
 }
