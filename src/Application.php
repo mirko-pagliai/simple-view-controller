@@ -42,26 +42,34 @@ class Application
 
     protected ErrorRenderer $errorRenderer;
 
+    protected const string DEFAULT_ROUTES_FILE = CONFIG . '/routes.php';
+
     /**
-     * Application constructor.
+     * Constructs a new instance of the application.
      *
-     * If no `RouteCollection` is provided, the application will try to load `config/routes.php` from the current
-     *  working directory.
+     * This method initializes the URL matcher and error renderer.
+     * If a route collection is not provided, it attempts to load routes from a file.
      *
-     * @throws \RuntimeException When routing configuration is missing or invalid.
+     * @param \Symfony\Component\Routing\RouteCollection|string|null $routes The route collection instance, a string
+     *  path to the routes file, or `null` to use the default `config/routes.php` file.
+     * @param \SimpleVC\Error\ErrorRenderer|null $errorRenderer The error renderer instance. Defaults to a new
+     *  `ErrorRenderer` with a `ConsoleLogger` if not provided.
+     * @return void
+     * @throws \RuntimeException If the routes file does not exist or does not return a valid `RouteCollection` instance.
      */
-    public function __construct(?RouteCollection $routes = null, ?ErrorRenderer $errorRenderer = null) {
-        if ($routes === null) {
-            $routesFile = 'config/routes.php';
-            if (file_exists($routesFile)) {
-                throw new RuntimeException("Missing routing configuration. Expected `{$routesFile}`.");
+    public function __construct(RouteCollection|string|null $routes = null, ?ErrorRenderer $errorRenderer = null)
+    {
+        if (!$routes instanceof RouteCollection) {
+            $routesFile = $routes ?: self::DEFAULT_ROUTES_FILE;
+
+            if (!file_exists($routesFile)) {
+                throw new RuntimeException("Routes file {$routesFile} does not exist.");
             }
 
-            // @phpstan-ignore require.fileNotFound
             $routes = require $routesFile;
             if (!$routes instanceof RouteCollection) {
                 throw new RuntimeException(
-                    "`{$routesFile}` must return an instance of `" . RouteCollection::class . '`.',
+                    "Routes file `{$routesFile}` must return an instance of `" . RouteCollection::class . '`.',
                 );
             }
         }
@@ -101,7 +109,7 @@ class Application
 
             if (!is_array($callable) || count($callable) !== 2) {
                 throw new RuntimeException(
-                    "'Invalid controller resolution. Expected `['ControllerName', 'methodName']` callable.'",
+                    'Invalid controller resolution. A controller method could not be resolved from the request.',
                 );
             }
 
