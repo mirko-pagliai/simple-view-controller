@@ -20,7 +20,9 @@ class ConsoleLogger extends AbstractLogger
     /**
      * @var resource
      */
-    private $stream;
+    protected $stream;
+
+    protected bool $ownsStream;
 
     /**
      * Constructor method for initializing the stream.
@@ -31,7 +33,14 @@ class ConsoleLogger extends AbstractLogger
      */
     public function __construct($stream = null)
     {
-        $stream = $stream ?: fopen('php://stderr', 'w');
+        if ($stream === null) {
+            $stream = fopen('php://stderr', 'w');
+            $this->ownsStream = true;
+        } else {
+            $this->stream = $stream;
+            $this->ownsStream = false;
+        }
+
         if (!is_resource($stream)) {
             throw new RuntimeException('Invalid stream resource');
         }
@@ -59,6 +68,19 @@ class ConsoleLogger extends AbstractLogger
         $exception = $context['exception'] ?? null;
         if ($exception instanceof Throwable) {
             fwrite($this->stream, (string)$exception . "\n");
+        }
+    }
+
+    /**
+     * Destructor method for cleaning up resources.
+     * Closes the stream if it is owned by the instance.
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        if ($this->ownsStream) {
+            fclose($this->stream);
         }
     }
 }
