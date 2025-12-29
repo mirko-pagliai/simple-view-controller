@@ -16,6 +16,14 @@ use Throwable;
 class ErrorViewTest extends TestCase
 {
     /**
+     * @inheritDoc
+     */
+    protected function tearDown(): void
+    {
+        putenv('DEBUG');
+    }
+
+    /**
      * @link \SimpleVC\View\ErrorView::__construct()
      */
     #[Test]
