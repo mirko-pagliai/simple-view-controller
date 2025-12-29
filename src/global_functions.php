@@ -34,6 +34,9 @@ if (!function_exists('env')) {
         if ($value === false) {
             return $default;
         }
+        if ($value === 'null') {
+            return null;
+        }
 
         // Handle boolean strings
         if (in_array(strtolower($value), ['true', 'false', '1', '0'], true)) {
