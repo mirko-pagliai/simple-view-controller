@@ -24,9 +24,6 @@
     "phpstan/phpstan": "^2.1",
     "symfony/var-dumper": "^7.4|^8.0"
   },
-  "suggest": {
-    "twbs/bootstrap": "Bootstrap CSS framework for responsive design"
-  },
   "autoload": {
     "psr-4": {
       "SimpleVC\\": "src/"
